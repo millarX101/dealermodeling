@@ -1,5 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import ReportGenerator from "../components/ReportGenerator";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer, LineChart, Line, ReferenceLine,
@@ -305,6 +307,52 @@ export default function MXDealerEstimator() {
   }, [carPrice, dealMixPct, dealerBrokeragePct,
     aftermarketMargin, insuranceMargin, dealMargin, monthlyIntros, avgEmployees,
     additionalNLRate, repeatRate, bmCommission, otherCosts, hotLeadRate, newSalesPct]);
+
+  // === AUTO-SAVE TO SUPABASE (debounced) ===
+  const { session } = useAuth();
+  const sessionIdRef = useRef(null);
+  const saveTimer = useRef(null);
+
+  const saveToSupabase = useCallback(async () => {
+    if (!session?.user) return;
+    const payload = {
+      user_id: session.user.id,
+      user_email: session.user.email,
+      updated_at: new Date().toISOString(),
+      inputs: {
+        carPrice, dealMixPct, dealerBrokeragePct, bmCommission, otherCosts,
+        aftermarketMargin, insuranceMargin, dealMargin, newSalesPct,
+        monthlyIntros, avgEmployees, additionalNLRate, repeatRate, hotLeadRate,
+      },
+      results: {
+        revenueMonth1: calc.data?.[0]?.dealerRevenue,
+        revenueMonth12: calc.data?.[11]?.dealerRevenue,
+        revenueMonth60: calc.data?.[59]?.dealerRevenue,
+        avgMonthlyRevenue: Math.round(calc.totalDealer5yr / 60),
+        totalDealer5yr: calc.totalDealer5yr,
+        hotLeadsMonth60: calc.hotLeadsMonth60,
+        perDealReferral: Math.round(calc.ref_dealerShare + calc.totalAddOns),
+        perDealDealerFinance: Math.round(calc.df_dealerNet),
+      },
+    };
+    try {
+      if (sessionIdRef.current) {
+        await supabase.from("estimator_sessions").update(payload).eq("id", sessionIdRef.current);
+      } else {
+        const { data } = await supabase.from("estimator_sessions").insert(payload).select("id").single();
+        if (data) sessionIdRef.current = data.id;
+      }
+    } catch (e) { /* silent — don't break the UI */ }
+  }, [session, carPrice, dealMixPct, dealerBrokeragePct, bmCommission, otherCosts,
+    aftermarketMargin, insuranceMargin, dealMargin, newSalesPct,
+    monthlyIntros, avgEmployees, additionalNLRate, repeatRate, hotLeadRate, calc]);
+
+  useEffect(() => {
+    if (!session?.user) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(saveToSupabase, 2000);
+    return () => clearTimeout(saveTimer.current);
+  }, [saveToSupabase, session]);
 
   const tabs = [
     { id: "deal", label: "Deal Structure" },
