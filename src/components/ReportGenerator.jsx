@@ -440,11 +440,14 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           </div>
         </div>
 
+        {/* PAGE BREAK before all charts */}
+        <div className="page-break" />
+
         {/* Monthly Revenue Chart */}
         <div className="rpt-section">
           <h2 className="rpt-section-title" style={{ color: TEAL }}>Long Term Revenue Projection — 60 Months</h2>
           <div className="rpt-chart-wrapper">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={calc.data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="rptGradDealer" x1="0" y1="0" x2="0" y2="1">
@@ -462,9 +465,6 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
             </ResponsiveContainer>
           </div>
         </div>
-
-        {/* PAGE BREAK before charts + supporting */}
-        <div className="page-break" />
 
         {/* Deal Volume Chart */}
         <div className="rpt-section">
@@ -512,6 +512,8 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
             Hot leads begin from month 32 as leases mature — {fmtN(calc.hotLeadsMonth60)} warm leads/month by Year 5. These are customers returning to you for their next new car.
           </div>
         </div>
+
+        <div className="page-break" />
 
         {/* Annual Summary — supporting reference */}
         <div className="rpt-section">
