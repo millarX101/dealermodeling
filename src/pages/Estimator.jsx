@@ -225,12 +225,17 @@ export default function MXDealerEstimator() {
       const mxRevenue_trail     = organicDeals * ref_mxNet;
 
       activeLeases = activeLeases * (1 - monthlyChurnRate) + newDeals + organicDeals;
-      // Repeat deals = leases maturing this month (from ~32 months ago) × repeat rate
-      // Only the cohort that originated ~32 months ago is up for renewal, not the whole book
-      const maturingDeals = m > 32 ? data[m - 33].totalDeals : 0;
+      // Lease term split: 15% short-term (1-2yr, avg 18mo), 85% standard (32mo)
+      const shortTermPct = 0.15;
+      const shortTermLag = 18; // avg months for 1-2yr leases
+      const standardLag = 32;  // standard lease term
+      // Maturing deals from each cohort
+      const maturingShort = m > shortTermLag ? data[m - shortTermLag - 1].totalDeals * shortTermPct : 0;
+      const maturingStd   = m > standardLag  ? data[m - standardLag - 1].totalDeals * (1 - shortTermPct) : 0;
+      const maturingDeals = maturingShort + maturingStd;
       const repeatDeals = maturingDeals * (repeatRate / 100);
-      // Hot leads = leases maturing from ~32 months ago — customers returning at lease-end
-      const hotLeadsThisMonth = m > 32 ? (data[m - 33].totalDeals) * (hotLeadRate / 100) : 0;
+      // Hot leads = maturing leases × hot lead rate (both short-term and standard)
+      const hotLeadsThisMonth = maturingDeals * (hotLeadRate / 100);
       const dealerRevenue_repeat = repeatDeals * (trailTierRate * ref_mxGross);
       const mxRevenue_repeat     = repeatDeals * ref_mxNet;
 
@@ -572,10 +577,11 @@ export default function MXDealerEstimator() {
                   <SliderInput label="Organic Conversion Rate (monthly)" value={additionalNLRate} onChange={setAdditionalNLRate} min={0.5} max={10} step={0.25} suffix="%" />
 
                   <div style={{ borderTop: `1px solid ${BORDER}`, paddingTop: 16, marginTop: 8, marginBottom: 16 }}>
-                    <div style={{ color: PINK, fontSize: 12, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", marginBottom: 12 }}>REPEAT BUSINESS (Month 32+)</div>
+                    <div style={{ color: PINK, fontSize: 12, fontFamily: "'DM Mono', monospace", letterSpacing: "0.05em", marginBottom: 12 }}>REPEAT BUSINESS</div>
                     <SliderInput label="Repeat / Refinance / Trade-Up Rate" value={repeatRate} onChange={setRepeatRate} min={30} max={95} step={5} format="pct" />
                     <div style={infoBox(PINK)}>
-                      From month 32, <span style={{ color: PINK }}>{repeatRate}%</span> of maturing leases (32-month term) return via refinance, trade-ups, and new NL applications.
+                      <span style={{ color: PINK }}>{repeatRate}%</span> of maturing leases return via refinance, trade-ups, and new NL applications.
+                      Split: <span style={{ color: PINK }}>15%</span> short-term (1–2yr, mature ~month 18) + <span style={{ color: PINK }}>85%</span> standard (mature ~month 32).
                     </div>
                   </div>
                 </Card>
@@ -590,9 +596,12 @@ export default function MXDealerEstimator() {
                       { l: "Deals from new employers — Yr 4–5", v: "20%", c: TEXT2 },
                       { l: "Dealer deal volume", v: "Constant", c: TEAL },
                       { l: "New employer → first conversions", v: "6 month lag", c: GOLD },
+                      { l: "Short-term leases (1–2yr)", v: "15%", c: PINK },
+                      { l: "Short-term maturity", v: "~18 months", c: PINK },
+                      { l: "Standard lease maturity", v: "~32 months", c: TEXT2 },
                       { l: "Book churn (annual)", v: "−10% / year", c: "#EF4444" },
                     ].map((r, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < 6 ? `1px solid ${BORDER}` : "none" }}>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < 9 ? `1px solid ${BORDER}` : "none" }}>
                         <span>{r.l}</span>
                         <span style={{ color: r.c, fontWeight: 500, flexShrink: 0, marginLeft: 12 }}>{r.v}</span>
                       </div>

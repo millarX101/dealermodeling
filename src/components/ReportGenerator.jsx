@@ -577,7 +577,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
             </div>
           </div>
           <div className="rpt-note">
-            Dealer deal volume is constant. New employer acquisition decays: Year 1 = 70% of deals from new employers, Year 2 = 40%, Year 3 = 30%, Year 4–5 = 20%. 6-month lag from new employer sign-on to first organic conversions. Book churn at 10%/yr applied monthly.
+            Dealer deal volume is constant. New employer acquisition decays: Year 1 = 70% of deals from new employers, Year 2 = 40%, Year 3 = 30%, Year 4–5 = 20%. 6-month lag from new employer sign-on to first organic conversions. Lease term split: 15% short-term (1–2yr, maturing ~18 months) and 85% standard (maturing ~32 months). Book churn at 10%/yr applied monthly.
           </div>
         </div>
 
