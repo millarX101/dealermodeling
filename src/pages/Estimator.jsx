@@ -192,8 +192,8 @@ export default function MXDealerEstimator() {
 
     // New employer acquisition decay — controls how many deals come from NEW employers
     // (adding fresh employees to the pool). Dealer deal volume stays constant.
-    // Y1=70% from new employers, Y2-Y5=20% (market saturates, most deals from existing employers)
-    const yearlyNewEmployerRate = [0.70, 0.20, 0.20, 0.20, 0.20];
+    // Y1=70%, Y2=40%, Y3=30%, Y4-Y5=20% (gradual market saturation)
+    const yearlyNewEmployerRate = [0.70, 0.40, 0.30, 0.20, 0.20];
     const monthlyChurnRate = 0.10 / 12;
     const employerLagMonths = 6; // months before new employer employees start converting
     const months = 60;
@@ -585,12 +585,14 @@ export default function MXDealerEstimator() {
                   <div style={{ fontSize: 11, fontFamily: "'DM Mono', monospace", color: TEXT3 }}>
                     {[
                       { l: "Deals from new employers — Yr 1", v: "70%", c: TEXT2 },
-                      { l: "Deals from new employers — Yr 2–5", v: "20%", c: TEXT2 },
+                      { l: "Deals from new employers — Yr 2", v: "40%", c: TEXT2 },
+                      { l: "Deals from new employers — Yr 3", v: "30%", c: TEXT2 },
+                      { l: "Deals from new employers — Yr 4–5", v: "20%", c: TEXT2 },
                       { l: "Dealer deal volume", v: "Constant", c: TEAL },
                       { l: "New employer → first conversions", v: "6 month lag", c: GOLD },
                       { l: "Book churn (annual)", v: "−10% / year", c: "#EF4444" },
                     ].map((r, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < 4 ? `1px solid ${BORDER}` : "none" }}>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < 6 ? `1px solid ${BORDER}` : "none" }}>
                         <span>{r.l}</span>
                         <span style={{ color: r.c, fontWeight: 500, flexShrink: 0, marginLeft: 12 }}>{r.v}</span>
                       </div>
