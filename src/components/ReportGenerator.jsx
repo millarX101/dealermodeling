@@ -85,8 +85,14 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
 
         /* ---- Print styles ---- */
         @media print {
+          /* Hide ALL app content — only the report prints */
+          body * { visibility: hidden !important; }
+          .report-overlay, .report-overlay * { visibility: visible !important; }
+          .report-overlay {
+            position: absolute; left: 0; top: 0; width: 100%;
+            background: white; overflow: visible; z-index: 99999;
+          }
           .report-toolbar { display: none !important; }
-          .report-overlay { background: white; position: static; overflow: visible; }
           .report-page {
             margin: 0; padding: 40px 48px; box-shadow: none; border-radius: 0;
             max-width: 100%;
