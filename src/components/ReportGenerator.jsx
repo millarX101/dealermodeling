@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, LineChart, Line, ReferenceLine, Cell
@@ -8,11 +9,15 @@ const fmt = (n) => n == null ? "—" : new Intl.NumberFormat("en-AU", { style: "
 const fmtK = (n) => n >= 1000000 ? `$${(n/1000000).toFixed(2)}M` : n >= 1000 ? `$${(n/1000).toFixed(1)}k` : fmt(n);
 const fmtN = (n) => new Intl.NumberFormat("en-AU", { maximumFractionDigits: 1 }).format(n);
 
-const PURPLE = "#8B5CF6";
-const PINK = "#EC4899";
-const TEAL = "#14B8A6";
-const GOLD = "#F59E0B";
-const INDIGO = "#6366F1";
+const BLUE = "#2563EB";
+const GREEN = "#059669";
+const ORANGE = "#D97706";
+const RED = "#DC2626";
+const PURPLE = "#7C3AED";
+// Legacy aliases for CSS classes
+const TEAL = GREEN;
+const GOLD = ORANGE;
+const PINK = ORANGE;
 
 export default function ReportGenerator({ calc, inputs, onClose }) {
   const reportRef = useRef(null);
@@ -37,16 +42,14 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
   // Year-end monthly snapshots (Month 12, 24, 36, 48, 60)
   const yearEndMonths = [11, 23, 35, 47, 59].map(i => calc.data[i]).filter(Boolean);
 
-  return (
+  return createPortal(
     <div className="report-overlay">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
-
         .report-overlay {
           position: fixed; inset: 0; z-index: 9999;
           background: #f4f4f8;
           overflow-y: auto;
-          font-family: 'Inter', system-ui, sans-serif;
+          font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
           color: #1a1a2e;
         }
 
@@ -54,27 +57,27 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           position: sticky; top: 0; z-index: 10;
           display: flex; align-items: center; justify-content: space-between;
           padding: 12px 32px;
-          background: #0F0F1A;
-          border-bottom: 1px solid #2A2A45;
-          box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+          background: #1E3A5F;
+          border-bottom: 1px solid #2A4A6F;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .report-toolbar span { color: #9CA3AF; font-size: 13px; font-family: 'DM Mono', monospace; }
+        .report-toolbar span { color: #CBD5E1; font-size: 13px; }
         .toolbar-btns { display: flex; gap: 10px; }
         .btn-print {
-          padding: 8px 24px; border-radius: 8px; border: none; cursor: pointer;
-          font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600;
-          background: linear-gradient(135deg, #8B5CF6, #EC4899); color: white;
+          padding: 8px 24px; border-radius: 6px; border: none; cursor: pointer;
+          font-size: 13px; font-weight: 600;
+          background: #2563EB; color: white;
           transition: opacity 0.15s;
         }
         .btn-print:hover { opacity: 0.85; }
         .btn-close-report {
-          padding: 8px 20px; border-radius: 8px; cursor: pointer;
-          font-family: 'DM Mono', monospace; font-size: 13px;
-          background: transparent; color: #9CA3AF;
-          border: 1px solid #2A2A45;
+          padding: 8px 20px; border-radius: 6px; cursor: pointer;
+          font-size: 13px;
+          background: transparent; color: #CBD5E1;
+          border: 1px solid #3B5A7F;
           transition: all 0.15s;
         }
-        .btn-close-report:hover { border-color: #9CA3AF; color: #E5E7EB; }
+        .btn-close-report:hover { border-color: #CBD5E1; color: #E5E7EB; }
 
         .report-page {
           max-width: 900px; margin: 32px auto; padding: 56px 64px;
@@ -86,6 +89,8 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         /* ---- Print styles ---- */
         @media print {
           /* Hide ALL app content — only the report prints */
+          body > * { display: none !important; }
+          body > .report-overlay { display: block !important; }
           body * { visibility: hidden !important; }
           .report-overlay, .report-overlay * { visibility: visible !important; }
           .report-overlay {
@@ -94,54 +99,55 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           }
           .report-toolbar { display: none !important; }
           .report-page {
-            margin: 0; padding: 40px 48px; box-shadow: none; border-radius: 0;
+            margin: 0; padding: 24px 32px; box-shadow: none; border-radius: 0;
             max-width: 100%;
           }
           .page-break { page-break-before: always; }
+          .avoid-break { page-break-inside: avoid; }
           .no-print { display: none !important; }
-          @page { margin: 0.6in; size: A4; }
+          @page { margin: 0.5in; size: A4; }
         }
 
         /* ---- Report typography ---- */
-        .rpt-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 36px; padding-bottom: 24px; border-bottom: 2px solid #E5E7EB; }
+        .rpt-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #E5E7EB; }
         .rpt-logo { display: flex; align-items: center; gap: 12px; }
         .rpt-logo-box {
-          width: 40px; height: 40px; border-radius: 10px;
-          background: linear-gradient(135deg, #8B5CF6, #EC4899);
+          width: 36px; height: 36px; border-radius: 6px;
+          background: #1E3A5F;
           display: flex; align-items: center; justify-content: center;
-          font-family: 'DM Mono', monospace; font-weight: 700; font-size: 15px; color: white;
+          font-weight: 700; font-size: 14px; color: white;
         }
-        .rpt-brand { font-family: 'DM Mono', monospace; font-size: 11px; color: #9CA3AF; letter-spacing: 0.1em; }
-        .rpt-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: #1a1a2e; margin: 4px 0 0; letter-spacing: -0.02em; }
-        .rpt-meta { text-align: right; font-family: 'DM Mono', monospace; font-size: 11px; color: #9CA3AF; line-height: 1.8; }
+        .rpt-brand { font-size: 11px; color: #9CA3AF; letter-spacing: 0.08em; }
+        .rpt-title { font-size: 24px; font-weight: 700; color: #1a1a2e; margin: 4px 0 0; }
+        .rpt-meta { text-align: right; font-size: 11px; color: #9CA3AF; line-height: 1.8; }
 
-        .rpt-section { margin-bottom: 32px; }
+        .rpt-section { margin-bottom: 24px; }
         .rpt-section-title {
-          font-family: 'DM Serif Display', serif; font-size: 18px; letter-spacing: -0.02em;
+          font-size: 16px; font-weight: 600;
           margin: 0 0 16px; padding-bottom: 8px;
           border-bottom: 1px solid #E5E7EB;
         }
 
         /* Monthly hero — big impact numbers */
         .rpt-monthly-hero {
-          display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 12px;
+          display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 8px;
         }
         .rpt-month-card {
-          padding: 20px; border-radius: 12px; text-align: center;
+          padding: 14px; border-radius: 8px; text-align: center;
         }
-        .rpt-month-card.primary { background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: white; }
-        .rpt-month-card.growth { background: linear-gradient(135deg, #0D9488, #059669); color: white; }
-        .rpt-month-card.mature { background: linear-gradient(135deg, #D97706, #B45309); color: white; }
-        .rpt-month-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.75; margin-bottom: 6px; }
-        .rpt-month-value { font-family: 'DM Serif Display', serif; font-size: 36px; letter-spacing: -0.03em; }
-        .rpt-month-sub { font-family: 'DM Mono', monospace; font-size: 10px; opacity: 0.6; margin-top: 4px; }
-        .rpt-month-deals { font-family: 'DM Mono', monospace; font-size: 11px; opacity: 0.8; margin-top: 2px; }
+        .rpt-month-card.primary { background: #2563EB; color: white; }
+        .rpt-month-card.growth { background: #059669; color: white; }
+        .rpt-month-card.mature { background: #D97706; color: white; }
+        .rpt-month-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.75; margin-bottom: 6px; }
+        .rpt-month-value { font-size: 24px; font-weight: 700; }
+        .rpt-month-sub { font-size: 10px; opacity: 0.6; margin-top: 4px; }
+        .rpt-month-deals { font-size: 11px; opacity: 0.8; margin-top: 2px; }
 
         /* Arrow growth row */
         .rpt-growth-arrow {
           display: flex; align-items: center; justify-content: center; gap: 8px;
-          padding: 10px; margin-bottom: 24px;
-          font-family: 'DM Mono', monospace; font-size: 12px; color: #6B7280;
+          padding: 6px; margin-bottom: 16px;
+          font-size: 11px; color: #6B7280;
         }
         .rpt-growth-arrow .arrow { color: ${TEAL}; font-size: 18px; font-weight: 700; }
         .rpt-growth-arrow .pct { color: ${TEAL}; font-weight: 700; }
@@ -150,14 +156,14 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         .rpt-hero-card {
           padding: 20px; border-radius: 12px; text-align: center;
         }
-        .rpt-hero-card.primary { background: linear-gradient(135deg, #8B5CF6, #6D28D9); color: white; }
+        .rpt-hero-card.primary { background: #2563EB; color: white; }
         .rpt-hero-card.secondary { background: #F0FDF4; border: 1px solid #BBF7D0; }
         .rpt-hero-card.accent { background: #FFFBEB; border: 1px solid #FDE68A; }
-        .rpt-hero-label { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-bottom: 6px; }
-        .rpt-hero-value { font-family: 'DM Serif Display', serif; font-size: 32px; letter-spacing: -0.03em; }
-        .rpt-hero-sub { font-family: 'DM Mono', monospace; font-size: 10px; opacity: 0.6; margin-top: 4px; }
+        .rpt-hero-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; margin-bottom: 6px; }
+        .rpt-hero-value { font-size: 24px; font-weight: 700; }
+        .rpt-hero-sub { font-size: 10px; opacity: 0.6; margin-top: 4px; }
 
-        .rpt-table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: 'DM Mono', monospace; }
+        .rpt-table { width: 100%; border-collapse: collapse; font-size: 12px; }
         .rpt-table th {
           text-align: left; padding: 8px 12px; font-size: 10px; text-transform: uppercase;
           letter-spacing: 0.06em; color: #6B7280; border-bottom: 2px solid #E5E7EB;
@@ -167,32 +173,32 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         .rpt-table td { padding: 8px 12px; border-bottom: 1px solid #F3F4F6; color: #374151; }
         .rpt-table tr:last-child td { border-bottom: none; }
         .rpt-table .total-row td { font-weight: 700; border-top: 2px solid #E5E7EB; border-bottom: none; color: #1a1a2e; }
-        .rpt-table .highlight { color: #8B5CF6; font-weight: 600; }
-        .rpt-table .teal { color: #0D9488; }
+        .rpt-table .highlight { color: #2563EB; font-weight: 600; }
+        .rpt-table .teal { color: #059669; }
         .rpt-table .gold { color: #D97706; }
 
         .rpt-kv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 32px; }
         .rpt-kv { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F3F4F6; }
-        .rpt-kv-label { font-family: 'DM Mono', monospace; font-size: 11px; color: #6B7280; }
-        .rpt-kv-value { font-family: 'DM Mono', monospace; font-size: 12px; color: #1a1a2e; font-weight: 600; }
+        .rpt-kv-label { font-size: 11px; color: #6B7280; }
+        .rpt-kv-value { font-size: 12px; color: #1a1a2e; font-weight: 600; }
 
         .rpt-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
         .rpt-deal-card {
-          padding: 20px; border-radius: 12px; border: 1px solid #E5E7EB;
+          padding: 14px; border-radius: 8px; border: 1px solid #E5E7EB;
         }
         .rpt-deal-card h4 {
-          font-family: 'DM Mono', monospace; font-size: 12px; text-transform: uppercase;
+          font-size: 12px; text-transform: uppercase;
           letter-spacing: 0.06em; margin: 0 0 12px; padding-bottom: 8px;
           border-bottom: 1px solid #E5E7EB;
         }
-        .rpt-deal-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-family: 'DM Mono', monospace; font-size: 11px; }
-        .rpt-deal-total { display: flex; justify-content: space-between; padding-top: 8px; border-top: 2px solid #E5E7EB; margin-top: 8px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; }
+        .rpt-deal-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; }
+        .rpt-deal-total { display: flex; justify-content: space-between; padding-top: 8px; border-top: 2px solid #E5E7EB; margin-top: 8px; font-size: 13px; font-weight: 700; }
 
         .rpt-chart-wrapper { margin: 16px 0; }
 
         .rpt-note {
-          font-family: 'DM Mono', monospace; font-size: 10px; color: #9CA3AF;
+          font-size: 10px; color: #9CA3AF;
           margin-top: 8px; line-height: 1.6; padding: 10px 14px;
           background: #F9FAFB; border-radius: 8px; border: 1px solid #F3F4F6;
         }
@@ -201,12 +207,12 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           margin-top: 40px; padding-top: 20px; border-top: 2px solid #E5E7EB;
           display: flex; justify-content: space-between; align-items: center;
         }
-        .rpt-footer-left { font-family: 'DM Mono', monospace; font-size: 10px; color: #9CA3AF; line-height: 1.8; }
+        .rpt-footer-left { font-size: 10px; color: #9CA3AF; line-height: 1.8; }
         .rpt-footer-right { text-align: right; }
         .rpt-confidential {
           display: inline-block; padding: 4px 12px; border-radius: 4px;
           background: #FEF2F2; border: 1px solid #FECACA;
-          font-family: 'DM Mono', monospace; font-size: 10px; color: #DC2626;
+          font-size: 10px; color: #DC2626;
           letter-spacing: 0.1em; text-transform: uppercase;
         }
       `}</style>
@@ -273,12 +279,12 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         </div>
 
         {/* What You Earn Per Deal */}
-        <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: PURPLE }}>What You Earn Per Deal</h2>
+        <div className="rpt-section avoid-break">
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>What You Earn Per Deal</h2>
           <div className="rpt-2col">
             {/* Referral Model */}
-            <div className="rpt-deal-card" style={{ borderColor: `${PURPLE}40` }}>
-              <h4 style={{ color: PURPLE }}>Referral Model</h4>
+            <div className="rpt-deal-card" style={{ borderColor: `${BLUE}40` }}>
+              <h4 style={{ color: BLUE }}>Referral Model</h4>
               <div className="rpt-deal-line">
                 <span style={{ color: "#6B7280" }}>Net Amount Financed</span>
                 <span>{fmt(calc.netFinanced)}</span>
@@ -289,7 +295,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
               </div>
               <div className="rpt-deal-line">
                 <span style={{ color: "#6B7280" }}>Your Share (30%)</span>
-                <span style={{ color: PURPLE, fontWeight: 600 }}>{fmt(calc.ref_dealerShare)}</span>
+                <span style={{ color: BLUE, fontWeight: 600 }}>{fmt(calc.ref_dealerShare)}</span>
               </div>
               <div className="rpt-deal-line">
                 <span style={{ color: "#6B7280" }}>Dealer Add-ons</span>
@@ -297,13 +303,13 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
               </div>
               <div className="rpt-deal-total">
                 <span>Total Per Deal</span>
-                <span style={{ color: PURPLE }}>{fmt(calc.ref_dealerShare + calc.totalAddOns)}</span>
+                <span style={{ color: BLUE }}>{fmt(calc.ref_dealerShare + calc.totalAddOns)}</span>
               </div>
             </div>
 
             {/* Dealer Finance Model */}
-            <div className="rpt-deal-card" style={{ borderColor: `${PINK}40` }}>
-              <h4 style={{ color: PINK }}>Dealer Finance Model</h4>
+            <div className="rpt-deal-card" style={{ borderColor: `${GREEN}40` }}>
+              <h4 style={{ color: GREEN }}>Dealer Finance Model</h4>
               <div className="rpt-deal-line">
                 <span style={{ color: "#6B7280" }}>Net Amount Financed</span>
                 <span>{fmt(calc.netFinanced)}</span>
@@ -332,21 +338,21 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
               )}
               <div className="rpt-deal-total">
                 <span>Net Per Deal</span>
-                <span style={{ color: PINK }}>{fmt(calc.df_dealerNet)}</span>
+                <span style={{ color: GREEN }}>{fmt(calc.df_dealerNet)}</span>
               </div>
             </div>
           </div>
 
           <div className="rpt-note">
             Deal mix: {inputs.dealMixPct}% Referral / {100 - inputs.dealMixPct}% Dealer Finance &nbsp;|&nbsp;
-            Blended revenue per new intro: <strong style={{ color: PURPLE }}>{fmt(calc.dealerRevenue_newIntro)}</strong> &nbsp;|&nbsp;
+            Blended revenue per new intro: <strong style={{ color: BLUE }}>{fmt(calc.dealerRevenue_newIntro)}</strong> &nbsp;|&nbsp;
             Avg car price (before on-roads): {fmt(inputs.carPrice)}
           </div>
         </div>
 
         {/* Add-ons Breakdown */}
-        <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: GOLD }}>Dealer Add-On Breakdown</h2>
+        <div className="rpt-section avoid-break">
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Dealer Add-On Breakdown</h2>
           <div className="rpt-kv-grid" style={{ gridTemplateColumns: "1fr" }}>
             <div className="rpt-kv">
               <span className="rpt-kv-label">Aftermarket Margin</span>
@@ -362,7 +368,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
             </div>
             <div className="rpt-kv" style={{ borderBottom: "2px solid #E5E7EB" }}>
               <span className="rpt-kv-label" style={{ fontWeight: 700, color: "#1a1a2e" }}>Total Add-Ons Per Deal</span>
-              <span className="rpt-kv-value" style={{ color: GOLD, fontSize: 14 }}>{fmt(calc.totalAddOns)}</span>
+              <span className="rpt-kv-value" style={{ color: GREEN, fontSize: 14 }}>{fmt(calc.totalAddOns)}</span>
             </div>
           </div>
           <div className="rpt-note">
@@ -370,12 +376,10 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           </div>
         </div>
 
-        {/* PAGE BREAK before monthly detail */}
-        <div className="page-break" />
-
         {/* === MONTH-BY-MONTH: First 12 Months === */}
+        <div className="page-break" />
         <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: TEAL }}>Your First 12 Months — Monthly Breakdown</h2>
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Your First 12 Months — Monthly Breakdown</h2>
           <table className="rpt-table">
             <thead>
               <tr>
@@ -411,8 +415,8 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         </div>
 
         {/* === Monthly Revenue at Each Year-End === */}
-        <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: PURPLE }}>Long Term Modeling — Monthly Earnings at Each Year-End</h2>
+        <div className="rpt-section avoid-break">
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Long Term Modeling — Monthly Earnings at Each Year-End</h2>
           <table className="rpt-table">
             <thead>
               <tr>
@@ -445,7 +449,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
 
         {/* Monthly Revenue Chart */}
         <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: TEAL }}>Long Term Revenue Projection — 60 Months</h2>
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Long Term Revenue Projection — 60 Months</h2>
           <div className="rpt-chart-wrapper">
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={calc.data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
@@ -456,10 +460,10 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 9, fontFamily: "'DM Mono', monospace" }} tickFormatter={v => v % 12 === 0 ? `Y${v/12}` : v === 1 ? "M1" : ""} />
-                <YAxis tick={{ fill: "#9CA3AF", fontSize: 9, fontFamily: "'DM Mono', monospace" }} tickFormatter={v => fmtK(v)} />
+                <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 9 }} tickFormatter={v => v % 12 === 0 ? `Y${v/12}` : v === 1 ? "M1" : ""} />
+                <YAxis tick={{ fill: "#9CA3AF", fontSize: 9 }} tickFormatter={v => fmtK(v)} />
                 <Tooltip formatter={(v) => fmt(v)} labelFormatter={(l) => `Month ${l}`} />
-                <ReferenceLine x={32} stroke={PINK} strokeDasharray="4 4" label={{ value: "Leases mature", fill: PINK, fontSize: 9, fontFamily: "'DM Mono', monospace" }} />
+                <ReferenceLine x={32} stroke={PINK} strokeDasharray="4 4" label={{ value: "Leases mature", fill: PINK, fontSize: 9 }} />
                 <Area type="monotone" dataKey="dealerRevenue" name="Your Monthly Revenue" stroke={TEAL} fill="url(#rptGradDealer)" strokeWidth={2.5} />
               </AreaChart>
             </ResponsiveContainer>
@@ -468,13 +472,13 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
 
         {/* Deal Volume Chart */}
         <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: INDIGO }}>Where Your Deals Come From Each Month</h2>
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Where Your Deals Come From Each Month</h2>
           <div className="rpt-chart-wrapper">
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={calc.data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 9, fontFamily: "'DM Mono', monospace" }} tickFormatter={v => v % 12 === 0 ? `Y${v/12}` : ""} />
-                <YAxis tick={{ fill: "#9CA3AF", fontSize: 9, fontFamily: "'DM Mono', monospace" }} />
+                <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 9 }} tickFormatter={v => v % 12 === 0 ? `Y${v/12}` : ""} />
+                <YAxis tick={{ fill: "#9CA3AF", fontSize: 9 }} />
                 <Tooltip formatter={(v) => fmtN(v)} labelFormatter={(l) => `Month ${l}`} />
                 <ReferenceLine x={32} stroke={PINK} strokeDasharray="4 4" />
                 <Area type="monotone" dataKey="newDeals" name="Your Intros" stackId="1" stroke={PURPLE} fill={PURPLE} fillOpacity={0.3} strokeWidth={1.5} />
@@ -490,7 +494,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
 
         {/* Hot Leads Chart */}
         <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: GOLD }}>Hot New Car Leads — Monthly Pipeline</h2>
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Hot New Car Leads — Monthly Pipeline</h2>
           <div className="rpt-chart-wrapper">
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={calc.data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
@@ -501,8 +505,8 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 9, fontFamily: "'DM Mono', monospace" }} tickFormatter={v => v % 12 === 0 ? `Y${v/12}` : ""} />
-                <YAxis tick={{ fill: "#9CA3AF", fontSize: 9, fontFamily: "'DM Mono', monospace" }} />
+                <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 9 }} tickFormatter={v => v % 12 === 0 ? `Y${v/12}` : ""} />
+                <YAxis tick={{ fill: "#9CA3AF", fontSize: 9 }} />
                 <Tooltip formatter={(v) => fmtN(v)} labelFormatter={(l) => `Month ${l}`} />
                 <Area type="monotone" dataKey="hotLeads" name="Hot Leads/Month" stroke={GOLD} fill="url(#rptGradLeads)" strokeWidth={2} />
               </AreaChart>
@@ -513,11 +517,10 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           </div>
         </div>
 
-        <div className="page-break" />
-
         {/* Annual Summary — supporting reference */}
-        <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: PURPLE }}>Long Term Annual Summary</h2>
+        <div className="page-break" />
+        <div className="rpt-section avoid-break">
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Long Term Annual Summary</h2>
           <table className="rpt-table">
             <thead>
               <tr>
@@ -550,7 +553,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         </div>
 
         {/* Growth Assumptions */}
-        <div className="rpt-section">
+        <div className="rpt-section avoid-break">
           <h2 className="rpt-section-title" style={{ color: "#6B7280" }}>Growth Model Assumptions</h2>
           <div className="rpt-kv-grid">
             <div className="rpt-kv">
@@ -584,8 +587,8 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
         </div>
 
         {/* Trail Income Tiers Reference */}
-        <div className="rpt-section">
-          <h2 className="rpt-section-title" style={{ color: PURPLE }}>Trail Income Tier Structure</h2>
+        <div className="rpt-section avoid-break">
+          <h2 className="rpt-section-title" style={{ color: BLUE }}>Trail Income Tier Structure</h2>
           <table className="rpt-table">
             <thead>
               <tr>
@@ -632,6 +635,7 @@ export default function ReportGenerator({ calc, inputs, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
