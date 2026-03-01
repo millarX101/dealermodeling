@@ -3,12 +3,13 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
-  const { session, signIn, signInWithMagicLink } = useAuth()
+  const { session, signIn, signInWithMagicLink, resetPassword } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [mode, setMode] = useState('password') // 'password' | 'magic'
   const [error, setError] = useState(null)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Already logged in — bounce to estimator
@@ -22,6 +23,22 @@ export default function Login() {
     setSubmitting(true)
     const { error } = await signIn(email, password)
     if (error) setError(error.message)
+    setSubmitting(false)
+  }
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Enter your email address first')
+      return
+    }
+    setError(null)
+    setSubmitting(true)
+    const { error } = await resetPassword(email)
+    if (error) {
+      setError(error.message)
+    } else {
+      setResetSent(true)
+    }
     setSubmitting(false)
   }
 
@@ -44,7 +61,14 @@ export default function Login() {
         <h1>MX Dealer<span className="brand-accent">Advantage</span></h1>
         <p className="login-subtitle">Dealer Income Estimator</p>
 
-        {magicLinkSent ? (
+        {resetSent ? (
+          <div className="magic-link-success">
+            <p>Password reset email sent! Check your inbox.</p>
+            <button onClick={() => { setResetSent(false); setError(null) }} className="btn-link">
+              Back to login
+            </button>
+          </div>
+        ) : magicLinkSent ? (
           <div className="magic-link-success">
             <p>Check your email for a login link!</p>
             <button onClick={() => setMagicLinkSent(false)} className="btn-link">
@@ -81,16 +105,27 @@ export default function Login() {
               </label>
 
               {mode === 'password' && (
-                <label>
-                  Password
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    placeholder="••••••••"
-                  />
-                </label>
+                <>
+                  <label>
+                    Password
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    className="btn-link"
+                    style={{ fontSize: 12, marginTop: -4, marginBottom: 8, textAlign: 'right', display: 'block', marginLeft: 'auto' }}
+                    disabled={submitting}
+                  >
+                    Forgot password?
+                  </button>
+                </>
               )}
 
               {error && <p className="error-msg">{error}</p>}
