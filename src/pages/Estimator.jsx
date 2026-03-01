@@ -992,7 +992,7 @@ export default function MXDealerEstimator() {
                   <YAxis tick={axisTickProps} tickFormatter={v => fmtK(v)} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend wrapperStyle={{ fontSize: 11, color: TEXT2 }} />
-                  <ReferenceLine x={32} {...refLineProps} label={{ value: "Repeat Kicks In", fill: "#6B7280", fontSize: 11, fontWeight: 600, position: "top" }} />
+                  <ReferenceLine x={32} {...refLineProps} label={{ value: "Repeat Kicks In", fill: "#9CA3AF", fontSize: 9, fontWeight: 500, position: "insideTopRight", dy: 10 }} />
                   <Area type="monotone" dataKey="mxRevenue" name="Income from MX Model" stroke={PURPLE} fill={PURPLE} fillOpacity={0.1} strokeWidth={2.5} />
                   <Area type="monotone" dataKey="dealerRevenue" name="Dealer Revenue" stroke={GREEN} fill={GREEN} fillOpacity={0.08} strokeWidth={1.5} />
                 </AreaChart>
