@@ -304,7 +304,7 @@ export default function MXDealerEstimator() {
     additionalNLRate, repeatRate, bmCommission, otherCosts, hotLeadRate, newSalesPct]);
 
   // === AUTO-SAVE TO SUPABASE (debounced) ===
-  const { session } = useAuth();
+  const { session, signOut } = useAuth();
   const sessionIdRef = useRef(null);
   const saveTimer = useRef(null);
 
@@ -404,6 +404,19 @@ export default function MXDealerEstimator() {
             >
               Generate Report
             </button>
+            {session && (
+              <button
+                onClick={() => signOut()}
+                style={{
+                  padding: "8px 16px", borderRadius: 6, cursor: "pointer",
+                  background: "transparent", color: TEXT3,
+                  border: `1px solid ${BORDER}`,
+                  fontSize: 12, whiteSpace: "nowrap",
+                }}
+              >
+                Log Out
+              </button>
+            )}
           </div>
         </div>
 
